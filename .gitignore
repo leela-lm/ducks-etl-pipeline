@@ -4,3 +4,6 @@ __pycache__/
 *.json
 target/
 dbt_packages/
+keys/
+logs/
+*.log
