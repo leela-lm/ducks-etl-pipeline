@@ -54,6 +54,14 @@ jobs:
             target: dev
           EOF
 
+        # Install flake8
+      - name: Install flake8
+        run: pip install flake8
+
+        # Run linting
+      - name: Run flake8
+        run: flake8 .
+
       # 7. dbt debug
       - name: dbt debug
         run: dbt debug --profiles-dir ~/.dbt --project-dir dbt_demo_project
