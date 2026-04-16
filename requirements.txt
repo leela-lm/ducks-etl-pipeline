@@ -1,4 +1,7 @@
 requests
 google-cloud-bigquery
-dbt-bigquery
+dbt-bigquery==1.11.8
+pathspec>=0.9,<0.13
+flake8
+pandas
 pytest
