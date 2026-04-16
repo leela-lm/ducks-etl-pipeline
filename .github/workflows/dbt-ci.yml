@@ -3,31 +3,41 @@ name: dbt CI Pipeline
 on:
   push:
     branches: [ main ]
+  workflow_dispatch:
 
 jobs:
   dbt:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
+      # 1. Checkout repo
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Python
+      # 2. Setup Python
+      - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.10"
 
+      # 3. Install dbt
       - name: Install dbt
-        run: pip install dbt-bigquery
+        run: |
+          pip install --upgrade pip
+          pip install dbt-bigquery
 
-      - name: Write GCP key
-        run: echo '${{ secrets.GCP_KEY }}' > key.json
+      # 4. Write GCP service account key safely
+      - name: Create GCP credentials file
+        run: |
+          echo '${{ secrets.GCP_KEY }}' > $HOME/key.json
+          echo "GOOGLE_APPLICATION_CREDENTIALS=$HOME/key.json" >> $GITHUB_ENV
 
-      - name: Check key file
-        run:
-          cat key.json
+      # 5. Verify key exists (debug step)
+      - name: Validate credentials file
+        run: ls -lah $HOME
 
-      - name: Create profiles.yml
+      # 6. Create dbt profiles.yml dynamically
+      - name: Create dbt profiles.yml
         run: |
           mkdir -p ~/.dbt
           cat <<EOF > ~/.dbt/profiles.yml
@@ -38,15 +48,20 @@ jobs:
                 method: service-account
                 project: ${{ secrets.GCP_PROJECT }}
                 dataset: ducks_dataset
-                keyfile: key.json
                 location: europe-west2
+                keyfile: "{{ env_var('GOOGLE_APPLICATION_CREDENTIALS') }}"
                 threads: 4
             target: dev
           EOF
 
-      - name: Run dbt
-        working-directory: dbt_demo_project
-        run: |
-               dbt debug
-               dbt run
-               dbt test
+      # 7. dbt debug
+      - name: dbt debug
+        run: dbt debug --profiles-dir ~/.dbt --project-dir dbt_demo_project
+
+      # 8. dbt run
+      - name: dbt run
+        run: dbt run --profiles-dir ~/.dbt --project-dir dbt_demo_project
+
+      # 9. dbt test
+      - name: dbt test
+        run: dbt test --profiles-dir ~/.dbt --project-dir dbt_demo_project
