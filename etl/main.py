@@ -5,6 +5,7 @@ from etl.logger import logger
 
 TABLE_ID = "ducks-etl-project.ducks_dataset.ducks_chapters_raw"
 
+
 def run_pipeline():
     try:
         logger.info("Starting ETL pipeline")
@@ -23,6 +24,7 @@ def run_pipeline():
     except Exception as e:
         logger.error(f"Pipeline failed: {e}")
         raise
+
 
 if __name__ == "__main__":
     run_pipeline()

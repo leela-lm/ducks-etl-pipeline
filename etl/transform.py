@@ -3,7 +3,7 @@ def transform_chapters(data):
 
     for feature in data.get("features", []):
         attr = feature.get("attributes", {})
-        geom = feature.get("geometry",{})
+        geom = feature.get("geometry", {})
 
         records.append({
             "chapter_id": attr.get("ChapterID"),
@@ -15,4 +15,3 @@ def transform_chapters(data):
         })
 
     return records
-

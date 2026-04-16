@@ -1,9 +1,15 @@
 import requests
 from etl.logger import logger
 
-API_URL = "https://services2.arcgis.com/5I7u4SJE1vUr79JC/arcgis/rest/services/UniversityChapters_Public/FeatureServer/0/query"
+BASE_URL = (
+    "https://services2.arcgis.com/5I7u4SJE1vUr79JC/"
+    "arcgis/rest/services/UniversityChapters_Public/FeatureServer/0"
+)
+API_URL = f"{BASE_URL}/query"
+
 
 def fetch_chapters():
+
     params = {
         "where": "1=1",
         "outFields": "*",
@@ -11,10 +17,10 @@ def fetch_chapters():
         "f": "json"
     }
     try:
-         response = requests.get(API_URL, params=params)
-         response.raise_for_status()
-         return response.json()
+        response = requests.get(API_URL, params=params)
+        response.raise_for_status()
+        return response.json()
 
     except requests.exceptions.RequestException as e:
-         logger.error(f"API request failed: {e}")
-         raise
+        logger.error(f"API request failed: {e}")
+        raise
