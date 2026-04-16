@@ -23,6 +23,10 @@ jobs:
       - name: Write GCP key
         run: echo '${{ secrets.GCP_KEY }}' > key.json
 
+      - name: Check key file
+        run:
+          cat key.json
+
       - name: Create profiles.yml
         run: |
           mkdir -p ~/.dbt
