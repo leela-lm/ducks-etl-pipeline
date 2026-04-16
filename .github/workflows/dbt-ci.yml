@@ -3,11 +3,9 @@ name: dbt CI Pipeline
 on:
   push:
     branches: [ main ]
-  pull_request:
-    branches: [ main ]
 
 jobs:
-  dbt-run:
+  dbt:
     runs-on: ubuntu-latest
 
     steps:
@@ -17,25 +15,36 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
+          python-version: "3.10"
 
-      - name: Install dependencies
+      - name: Install dbt
+        run: pip install dbt-bigquery
+
+      - name: Write GCP key
+        run: echo '${{ secrets.GCP_KEY }}' > key.json
+
+      - name: Create profiles.yml
         run: |
-          pip install --upgrade pip
-          pip install dbt-bigquery
+          mkdir -p ~/.dbt
+          cat <<EOF > ~/.dbt/profiles.yml
+          dbt_demo_project:
+            outputs:
+              dev:
+                type: bigquery
+                method: service-account
+                project: ${{ secrets.GCP_PROJECT }}
+                dataset: ducks_dataset
+                keyfile: key.json
+                location: europe-west2
+                threads: 4
+            target: dev
+          EOF
 
-      - name: Setup Google credentials
-        env:
-          GCP_KEY: ${{ secrets.GCP_KEY }}
-        run: |
-          echo "$GCP_KEY" > key.json
-          export GOOGLE_APPLICATION_CREDENTIALS=key.json
+      - name: Run dbt debug
+        run: dbt debug --project-dir dbt_project
 
-      - name: dbt debug
-        run: dbt debug --profiles-dir .
+      - name: Run dbt models
+        run: dbt run --project-dir dbt_project
 
-      - name: dbt run
-        run: dbt run --profiles-dir .
-
-      - name: dbt test
-        run: dbt test --profiles-dir .
+      - name: Run dbt tests
+        run: dbt test --project-dir dbt_project
